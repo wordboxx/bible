@@ -1,12 +1,17 @@
-#include "headers/BibleProcessor.h"
-#include "headers/SysValidator.h"
+#include "../headers/BibleProcessor.h"
 
-int main() {
-  // Variables
-  // --- Filepath variables
-  std::string dataDir = "data/";
-  std::string bibleFileName = "bibleTextNASB.txt";
-  std::string bibleFilePath = dataDir + bibleFileName;
+int main()
+{
+	// Filepath variables
+	std::string dataDir = "data/";
+	// --- Unprocessed Bible
+	std::string unprocessedBibleFilename = "bibleTextNASB.txt";
+	std::string unprocessedBibleFilepath = dataDir + unprocessedBibleFilename;
+	// --- Processed Bible
+	std::string processedBibleFilepath = dataDir + "processedBible";
 
-  return 0;
+	// Process the Bible
+	BibleProcessor::ProcessBible(unprocessedBibleFilepath, processedBibleFilepath);
+
+	return 0;
 }
