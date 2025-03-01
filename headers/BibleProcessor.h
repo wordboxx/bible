@@ -3,9 +3,10 @@
 
 #include <string>
 
-class BibleProcessor {
+class BibleProcessor
+{
 public:
-  static void ScanBible(std::string bibleFilepath);
+	static void ProcessBible(const std::string &bibleFilepath, const std::string &processedBibleFilepath);
 };
 
 #endif
