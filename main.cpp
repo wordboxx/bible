@@ -1,4 +1,4 @@
-#include "../headers/BibleProcessor.h"
+#include "headers/BibleProcessor.h"
 
 int main()
 {
