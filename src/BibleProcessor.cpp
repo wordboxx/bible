@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 #include <string_view>
-#include <functional>
+#include <filesystem>
 
 // (Local)
 #include "../headers/BibleProcessor.h"
@@ -62,7 +62,14 @@ void BibleProcessor::ProcessBible(const std::string &bibleFilepath, const std::s
 				if (isdigit(chapterNumber[0]))
 				{
 					// TODO: Make directories For each book and file for each chapter
-					std::cout << "Book: " << bibleBookName << ", Chapter: " << chapterNumber << std::endl;
+					std::string processedBibleBookDir = processedBibleFilepath + "/" + std::string(firstWord);
+					std::string processedBibleChapterFile = processedBibleBookDir + "/" + std::string(chapterNumber) + ".txt";
+					if (!std::filesystem::exists(processedBibleBookDir))
+					{
+						std::filesystem::create_directory(processedBibleBookDir);
+					} else {
+						// TODO: make text files for each chapter. insert line until new chapter number is found
+					}
 				}
 			}
 		}
