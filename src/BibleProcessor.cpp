@@ -1,3 +1,5 @@
+//TODO: modularize most functions (getBibleBookNames, getBibleBookChapters, getBibleBookVerses, etc.)
+
 // Imports
 #include <ctype.h>
 #include <fstream>
@@ -16,66 +18,86 @@ void BibleProcessor::ProcessBible(const std::string &bibleFilepath, const std::s
 	 * INPUT (String): 1) bibleFilepath to Bible text file
 	 * OUTPUT (Void): Organizes bible into Book -> Chapter -> Verse in /data/processed/ directory
 	 */
-
-	// Variables for scanning through unprocessed Bible text file
 	std::ifstream bibleFile;
 	std::string bibleLine;
+	std::string currBibleBook;
+	int currBibleChapter;
 
 	// Open the bible text file
 	bibleFile.open(bibleFilepath);
-
-	// Exits if there's a problem opening the bible text file
 	if (!bibleFile.is_open())
 	{
 		std::cout << "Error: " << std::string(bibleFilepath) << " not found!" << std::endl;
 		exit(1);
 	}
 
-	// Scans through every line of bible text file
+	// Scan through every line of bible text file
 	while (std::getline(bibleFile, bibleLine))
 	{
-		// Variables for scanning through bible book names
 		std::string bibleBookNamesFilepath = "data/bibleBookNames.txt";
 		std::ifstream bibleBookNamesFile;
 		std::string bibleBookName;
 
 		// Open the bible book names file
 		bibleBookNamesFile.open(bibleBookNamesFilepath);
+		if (!bibleBookNamesFile.is_open())
+		{
+			std::cout << "Error: " << std::string(bibleBookNamesFilepath) << " not found!" << std::endl;
+			exit(1);
+		}
 
 		// Scans through every line of bible book names file
 		while (std::getline(bibleBookNamesFile, bibleBookName))
 		{
-			// --- First word of bible line
+			// First word of bible line
 			std::string_view firstWord = bibleLine.substr(0, bibleLine.find(' '));
 
-			// --- If the first word is a book name
+			// If the first word is a book name
 			if (bibleBookName == firstWord)
 			{
-				// --- Get the spaces surrounding the proceeding number
+				currBibleBook = bibleBookName;
+
+				// Get the spaces surrounding the proceeding number
 				std::string::size_type firstSpacePos = bibleLine.find(' ');
 				std::string::size_type secondSpacePos = bibleLine.find(' ', firstSpacePos + 1);
 
-				// --- Use the spaces to isolate the chapter number
-				std::string_view chapterNumber = bibleLine.substr(firstSpacePos + 1, secondSpacePos - firstSpacePos - 1);
+				// Use the spaces to isolate the chapter number
+				std::string chapterNumber = bibleLine.substr(firstSpacePos + 1, secondSpacePos - firstSpacePos - 1);
 
-				// --- Make double sure that what is being isolated is a number, thus a chapter number
+				// Make double sure that what is being isolated is a number, thus a chapter number
 				if (isdigit(chapterNumber[0]))
 				{
-					// TODO: Make directories For each book and file for each chapter
-					std::string processedBibleBookDir = processedBibleFilepath + "/" + std::string(firstWord);
-					std::string processedBibleChapterFile = processedBibleBookDir + "/" + std::string(chapterNumber) + ".txt";
+					currBibleChapter = std::stoi(chapterNumber);
+
+					// Make sure processed Bible directory exists
+					if (!std::filesystem::exists(processedBibleFilepath))
+					{
+						std::filesystem::create_directory(processedBibleFilepath);
+					}
+
+					// Create Book directory if it doesn't exist
+					std::string processedBibleBookDir = processedBibleFilepath + "/" + bibleBookName;
 					if (!std::filesystem::exists(processedBibleBookDir))
 					{
 						std::filesystem::create_directory(processedBibleBookDir);
-					} else {
-						// TODO: make text files for each chapter. insert line until new chapter number is found
+					}
+
+					// Insert text file for each chapter into Book directory if it doesn't exist
+					std::string chapterFilename = bibleBookName + "_" + chapterNumber + ".txt";
+					std::string processedBibleChapterFile = processedBibleBookDir + "/" + chapterFilename;
+					if (!std::filesystem::exists(processedBibleChapterFile))
+					{
+						std::cout << processedBibleChapterFile << std::endl;
+						std::ofstream chapterFile;
+						chapterFile.open(processedBibleChapterFile);
+						chapterFile.close();
 					}
 				}
 			}
 		}
+		// Close the file
 		bibleBookNamesFile.close();
 	}
-
 	// Close the file
 	bibleFile.close();
 }
