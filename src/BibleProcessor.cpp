@@ -1,4 +1,4 @@
-//TODO: modularize most functions (getBibleBookNames, getBibleBookChapters, getBibleBookVerses, etc.)
+// TODO: modularize most functions (getBibleBookNames, getBibleBookChapters, getBibleBookVerses, etc.)
 
 // Imports
 #include <ctype.h>
@@ -7,10 +7,12 @@
 #include <string>
 #include <string_view>
 #include <filesystem>
+#include <functional>
 
 // (Local)
 #include "../headers/BibleProcessor.h"
 
+// TODO: introduce functional call as argument
 void BibleProcessor::ProcessBible(const std::string &bibleFilepath, const std::string &processedBibleFilepath)
 {
 	/*
@@ -34,70 +36,83 @@ void BibleProcessor::ProcessBible(const std::string &bibleFilepath, const std::s
 	// Scan through every line of bible text file
 	while (std::getline(bibleFile, bibleLine))
 	{
-		std::string bibleBookNamesFilepath = "data/bibleBookNames.txt";
-		std::ifstream bibleBookNamesFile;
-		std::string bibleBookName;
-
-		// Open the bible book names file
-		bibleBookNamesFile.open(bibleBookNamesFilepath);
-		if (!bibleBookNamesFile.is_open())
-		{
-			std::cout << "Error: " << std::string(bibleBookNamesFilepath) << " not found!" << std::endl;
-			exit(1);
-		}
-
-		// Scans through every line of bible book names file
-		while (std::getline(bibleBookNamesFile, bibleBookName))
-		{
-			// First word of bible line
-			std::string_view firstWord = bibleLine.substr(0, bibleLine.find(' '));
-
-			// If the first word is a book name
-			if (bibleBookName == firstWord)
-			{
-				currBibleBook = bibleBookName;
-
-				// Get the spaces surrounding the proceeding number
-				std::string::size_type firstSpacePos = bibleLine.find(' ');
-				std::string::size_type secondSpacePos = bibleLine.find(' ', firstSpacePos + 1);
-
-				// Use the spaces to isolate the chapter number
-				std::string chapterNumber = bibleLine.substr(firstSpacePos + 1, secondSpacePos - firstSpacePos - 1);
-
-				// Make double sure that what is being isolated is a number, thus a chapter number
-				if (isdigit(chapterNumber[0]))
-				{
-					currBibleChapter = std::stoi(chapterNumber);
-
-					// Make sure processed Bible directory exists
-					if (!std::filesystem::exists(processedBibleFilepath))
-					{
-						std::filesystem::create_directory(processedBibleFilepath);
-					}
-
-					// Create Book directory if it doesn't exist
-					std::string processedBibleBookDir = processedBibleFilepath + "/" + bibleBookName;
-					if (!std::filesystem::exists(processedBibleBookDir))
-					{
-						std::filesystem::create_directory(processedBibleBookDir);
-					}
-
-					// Insert text file for each chapter into Book directory if it doesn't exist
-					std::string chapterFilename = bibleBookName + "_" + chapterNumber + ".txt";
-					std::string processedBibleChapterFile = processedBibleBookDir + "/" + chapterFilename;
-					if (!std::filesystem::exists(processedBibleChapterFile))
-					{
-						std::cout << processedBibleChapterFile << std::endl;
-						std::ofstream chapterFile;
-						chapterFile.open(processedBibleChapterFile);
-						chapterFile.close();
-					}
-				}
-			}
-		}
-		// Close the file
-		bibleBookNamesFile.close();
+		// TODO: This is where the functional calls will be made
+		std::cout << bibleLine << std::endl;
 	}
 	// Close the file
 	bibleFile.close();
+}
+
+std::string BibleProcessor::GetBookName(std::string &bibleLine, std::string &processedBibleFilepath)
+{
+	std::string bibleBookNamesFilepath = "data/bibleBookNames.txt";
+	std::ifstream bibleBookNamesFile;
+	std::string bibleBookName;
+
+	// Open the bible book names file
+	bibleBookNamesFile.open(bibleBookNamesFilepath);
+	if (!bibleBookNamesFile.is_open())
+	{
+		std::cout << "Error: " << std::string(bibleBookNamesFilepath) << " not found!" << std::endl;
+		exit(1);
+	}
+
+	// Scans through every line of bible book names file
+	while (std::getline(bibleBookNamesFile, bibleBookName))
+	{
+		// First word of bible line
+		std::string_view firstWord = bibleLine.substr(0, bibleLine.find(' '));
+
+		// If the first word is a book name
+		if (bibleBookName == firstWord)
+		{
+			return bibleBookName;
+		}
+	}
+
+	// Close the file
+	bibleBookNamesFile.close();
+}
+
+int BibleProcessor::GetChapterNumber(std::string &bibleLine, std::string &processedBibleFilepath, std::string &bibleBookName)
+{
+	// Get the spaces surrounding the proceeding number
+	std::string::size_type firstSpacePos = bibleLine.find(' ');
+	std::string::size_type secondSpacePos = bibleLine.find(' ', firstSpacePos + 1);
+
+	// Use the spaces to isolate the chapter number
+	std::string chapterNumber = bibleLine.substr(firstSpacePos + 1, secondSpacePos - firstSpacePos - 1);
+
+	// Make double sure that what is being isolated is a number, thus a chapter number
+	if (isdigit(chapterNumber[0]))
+	{
+		int currBibleChapter = std::stoi(chapterNumber);
+		return currBibleChapter;
+	}
+}
+
+void BibleProcessor::CreateDirectory(std::string &bibleBookName, std::string &chapterNumber, std::string &processedBibleFilepath) {
+	// Make sure processed Bible directory exists
+	if (!std::filesystem::exists(processedBibleFilepath))
+	{
+		std::filesystem::create_directory(processedBibleFilepath);
+	}
+
+	// Create Book directory if it doesn't exist
+	std::string processedBibleBookDir = processedBibleFilepath + "/" + bibleBookName;
+	if (!std::filesystem::exists(processedBibleBookDir))
+	{
+		std::filesystem::create_directory(processedBibleBookDir);
+	}
+
+	// Insert text file for each chapter into Book directory if it doesn't exist
+	std::string chapterFilename = bibleBookName + "_" + chapterNumber + ".txt";
+	std::string processedBibleChapterFile = processedBibleBookDir + "/" + chapterFilename;
+	if (!std::filesystem::exists(processedBibleChapterFile))
+	{
+		std::cout << processedBibleChapterFile << std::endl;
+		std::ofstream chapterFile;
+		chapterFile.open(processedBibleChapterFile);
+		chapterFile.close();
+	}
 }
