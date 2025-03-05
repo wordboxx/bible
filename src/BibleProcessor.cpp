@@ -1,5 +1,3 @@
-// TODO: modularize most functions (getBibleBookNames, getBibleBookChapters, getBibleBookVerses, etc.)
-
 // Imports
 #include <ctype.h>
 #include <fstream>
@@ -7,23 +5,19 @@
 #include <string>
 #include <string_view>
 #include <filesystem>
-#include <functional>
 
 // (Local)
 #include "../headers/BibleProcessor.h"
 
-// TODO: introduce functional call as argument
-void BibleProcessor::ProcessBible(const std::string &bibleFilepath, const std::string &processedBibleFilepath)
+// Methods
+// --- Functional Methods
+void BibleProcessor::ScanBibleLines(const std::string &bibleFilepath)
 {
 	/*
-	 * FUNCTION: Scans through every line of bible
-	 * INPUT (String): 1) bibleFilepath to Bible text file
-	 * OUTPUT (Void): Organizes bible into Book -> Chapter -> Verse in /data/processed/ directory
+	 * Takes in a bible text file and scans through every line.
 	 */
 	std::ifstream bibleFile;
 	std::string bibleLine;
-	std::string currBibleBook;
-	int currBibleChapter;
 
 	// Open the bible text file
 	bibleFile.open(bibleFilepath);
@@ -37,15 +31,18 @@ void BibleProcessor::ProcessBible(const std::string &bibleFilepath, const std::s
 	while (std::getline(bibleFile, bibleLine))
 	{
 		// TODO: This is where the functional calls will be made
-		std::cout << bibleLine << std::endl;
+		std::cout << BibleProcessor::GetBookName(bibleLine, "data/bibleBookNames.txt") << std::endl;
 	}
 	// Close the file
 	bibleFile.close();
 }
 
-std::string BibleProcessor::GetBookName(std::string &bibleLine, std::string &processedBibleFilepath)
+std::string BibleProcessor::GetBookName(const std::string &bibleLine,
+										const std::string &bibleBookNamesFilepath)
 {
-	std::string bibleBookNamesFilepath = "data/bibleBookNames.txt";
+	/*
+	 * Takes in a line from the bible text file and returns the book name if present.
+	 */
 	std::ifstream bibleBookNamesFile;
 	std::string bibleBookName;
 
@@ -60,6 +57,7 @@ std::string BibleProcessor::GetBookName(std::string &bibleLine, std::string &pro
 	// Scans through every line of bible book names file
 	while (std::getline(bibleBookNamesFile, bibleBookName))
 	{
+		std::cout << bibleBookName << std::endl;
 		// First word of bible line
 		std::string_view firstWord = bibleLine.substr(0, bibleLine.find(' '));
 
@@ -72,10 +70,16 @@ std::string BibleProcessor::GetBookName(std::string &bibleLine, std::string &pro
 
 	// Close the file
 	bibleBookNamesFile.close();
+	
+	return "Failed";
 }
 
-int BibleProcessor::GetChapterNumber(std::string &bibleLine, std::string &processedBibleFilepath, std::string &bibleBookName)
+int BibleProcessor::GetChapterNumber(const std::string &bibleLine)
 {
+	/*
+	 * Takes in a line from the bible text file and returns the chapter number if present.
+	 */
+
 	// Get the spaces surrounding the proceeding number
 	std::string::size_type firstSpacePos = bibleLine.find(' ');
 	std::string::size_type secondSpacePos = bibleLine.find(' ', firstSpacePos + 1);
@@ -89,9 +93,17 @@ int BibleProcessor::GetChapterNumber(std::string &bibleLine, std::string &proces
 		int currBibleChapter = std::stoi(chapterNumber);
 		return currBibleChapter;
 	}
+	return -1;
 }
 
-void BibleProcessor::CreateDirectory(std::string &bibleBookName, std::string &chapterNumber, std::string &processedBibleFilepath) {
+void BibleProcessor::CreateDirectory(const std::string &processedBibleFilepath,
+									 const std::string &bibleBookName,
+									 const int &chapterNumber)
+{
+	/*
+	 * Takes in the processed Bible directory, the current book name, and the current chapter number.
+	 */
+
 	// Make sure processed Bible directory exists
 	if (!std::filesystem::exists(processedBibleFilepath))
 	{
@@ -106,7 +118,7 @@ void BibleProcessor::CreateDirectory(std::string &bibleBookName, std::string &ch
 	}
 
 	// Insert text file for each chapter into Book directory if it doesn't exist
-	std::string chapterFilename = bibleBookName + "_" + chapterNumber + ".txt";
+	std::string chapterFilename = bibleBookName + "_" + std::to_string(chapterNumber) + ".txt";
 	std::string processedBibleChapterFile = processedBibleBookDir + "/" + chapterFilename;
 	if (!std::filesystem::exists(processedBibleChapterFile))
 	{
