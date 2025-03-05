@@ -2,14 +2,19 @@
 #define BIBLEPROCESSOR_H
 
 #include <string>
+#include <functional>
 
 class BibleProcessor
 {
 public:
-	static void ProcessBible(const std::string &bibleFilepath, const std::string &processedBibleFilepath);
-	static std::string GetBookName(std::string &bibleLine, std::string &processedBibleFilepath);
-	static int BibleProcessor::GetChapterNumber(std::string &bibleLine, std::string &processedBibleFilepath, std::string &bibleBookName);
-	static void BibleProcessor::CreateDirectory(std::string &bibleBookName, std::string &chapterNumber, std::string &processedBibleFilepath);
+	// --- Functional Methods
+	static void ScanBibleLines(const std::string &bibleFilepath);
+	static std::string GetBookName(const std::string &bibleLine,
+								   const std::string &bibleBookNamesFilepath);
+	static int GetChapterNumber(const std::string &bibleLine);
+	static void CreateDirectory(const std::string &processedBibleFilepath,
+								const std::string &bibleBookName,
+								const int &chapterNumber);
 };
 
 #endif
