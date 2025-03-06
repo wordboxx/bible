@@ -11,13 +11,15 @@
 
 // Methods
 // --- Functional Methods
-void BibleProcessor::ScanBibleLines(const std::string &bibleFilepath)
+void BibleProcessor::ScanBibleFile(const std::string &bibleFilepath)
 {
 	/*
 	 * Takes in a bible text file and scans through every line.
 	 */
 	std::ifstream bibleFile;
 	std::string bibleLine;
+	std::string lastBook;
+	int lastChapter;
 
 	// Open the bible text file
 	bibleFile.open(bibleFilepath);
@@ -30,8 +32,22 @@ void BibleProcessor::ScanBibleLines(const std::string &bibleFilepath)
 	// Scan through every line of bible text file
 	while (std::getline(bibleFile, bibleLine))
 	{
-		// TODO: This is where the functional calls will be made
-		std::cout << BibleProcessor::GetBookName(bibleLine, "data/bibleBookNames.txt") << std::endl;
+		// TODO: Should make these functional calls or something
+		// The real thing to do is to have ScanBible be able to passively return bible lines
+		std::string_view currBook = BibleProcessor::GetBookName(bibleLine, "data/bibleBookNames.txt");
+		if (currBook != "" && currBook != lastBook)
+		{
+			lastBook = currBook;
+			// TODO: Do something with currBook
+		}
+
+		int currChapter = BibleProcessor::GetChapterNumber(bibleLine);
+		if (currChapter != -1 && currChapter != lastChapter)
+		// TODO: There might be a problem if the last book has a single chapter, since the next book will have the same chapter number
+		{
+			lastChapter = currChapter;
+			// TODO: Do something with currChapter
+		}
 	}
 	// Close the file
 	bibleFile.close();
@@ -57,7 +73,6 @@ std::string BibleProcessor::GetBookName(const std::string &bibleLine,
 	// Scans through every line of bible book names file
 	while (std::getline(bibleBookNamesFile, bibleBookName))
 	{
-		std::cout << bibleBookName << std::endl;
 		// First word of bible line
 		std::string_view firstWord = bibleLine.substr(0, bibleLine.find(' '));
 
@@ -71,7 +86,7 @@ std::string BibleProcessor::GetBookName(const std::string &bibleLine,
 	// Close the file
 	bibleBookNamesFile.close();
 	
-	return "Failed";
+	return "";
 }
 
 int BibleProcessor::GetChapterNumber(const std::string &bibleLine)
