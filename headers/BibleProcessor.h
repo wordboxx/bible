@@ -8,7 +8,7 @@ class BibleProcessor
 {
 public:
 	// --- Functional Methods
-	static void ScanBibleLines(const std::string &bibleFilepath);
+	static void ScanBibleFile(const std::string &bibleFilepath);
 	static std::string GetBookName(const std::string &bibleLine,
 								   const std::string &bibleBookNamesFilepath);
 	static int GetChapterNumber(const std::string &bibleLine);
