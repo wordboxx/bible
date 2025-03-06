@@ -14,7 +14,7 @@ int main()
 	std::string bibleBookNamesFilename = "bibleBookNames.txt";
 	std::string bibleBookNamesFilepath = dataDir + bibleBookNamesFilename;
 
-	BibleProcessor::ScanBibleLines(unprocessedBibleFilepath);
+	BibleProcessor::ScanBibleFile(unprocessedBibleFilepath);
 
 	return 0;
 }
