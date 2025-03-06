@@ -5,21 +5,30 @@
 #include <string>
 #include <string_view>
 #include <filesystem>
+#include <functional>
 
 // (Local)
 #include "../headers/BibleProcessor.h"
 
+// Filepaths
+// TODO: fix this; these either shouldn't be in here, or they should ONLY be in here and not in main.cpp
+// --- Data Directory
+std::string dataDir = "data/";
+// --- Processed Bible
+std::string processedBibleFilepath = dataDir + "processedBible";
+// --- Utility Files
+std::string bibleBookNamesFilename = "bibleBookNames.txt";
+std::string bibleBookNamesFilepath = dataDir + bibleBookNamesFilename;
+
 // Methods
 // --- Functional Methods
-void BibleProcessor::ScanBibleFile(const std::string &bibleFilepath)
+void BibleProcessor::ScanBibleFile(const std::string &bibleFilepath, std::function<void(const std::string &)> processLine)
 {
 	/*
 	 * Takes in a bible text file and scans through every line.
 	 */
 	std::ifstream bibleFile;
 	std::string bibleLine;
-	std::string lastBook;
-	int lastChapter;
 
 	// Open the bible text file
 	bibleFile.open(bibleFilepath);
@@ -32,22 +41,7 @@ void BibleProcessor::ScanBibleFile(const std::string &bibleFilepath)
 	// Scan through every line of bible text file
 	while (std::getline(bibleFile, bibleLine))
 	{
-		// TODO: Should make these functional calls or something
-		// The real thing to do is to have ScanBible be able to passively return bible lines
-		std::string_view currBook = BibleProcessor::GetBookName(bibleLine, "data/bibleBookNames.txt");
-		if (currBook != "" && currBook != lastBook)
-		{
-			lastBook = currBook;
-			// TODO: Do something with currBook
-		}
-
-		int currChapter = BibleProcessor::GetChapterNumber(bibleLine);
-		if (currChapter != -1 && currChapter != lastChapter)
-		// TODO: There might be a problem if the last book has a single chapter, since the next book will have the same chapter number
-		{
-			lastChapter = currChapter;
-			// TODO: Do something with currChapter
-		}
+		processLine(bibleLine);
 	}
 	// Close the file
 	bibleFile.close();
@@ -85,7 +79,7 @@ std::string BibleProcessor::GetBookName(const std::string &bibleLine,
 
 	// Close the file
 	bibleBookNamesFile.close();
-	
+
 	return "";
 }
 
@@ -111,13 +105,24 @@ int BibleProcessor::GetChapterNumber(const std::string &bibleLine)
 	return -1;
 }
 
+std::pair<std::string, int> BibleProcessor::GetBookAndChapter(const std::string &bibleLine, const std::string &bibleBookNamesFilepath)
+{
+	std::string bookName = std::string(BibleProcessor::GetBookName(bibleLine, bibleBookNamesFilepath));
+	int chapterNumber = BibleProcessor::GetChapterNumber(bibleLine);
+
+	return std::make_pair(bookName, chapterNumber);
+}
+
 void BibleProcessor::CreateDirectory(const std::string &processedBibleFilepath,
-									 const std::string &bibleBookName,
-									 const int &chapterNumber)
+									 const std::string &bibleLine)
 {
 	/*
 	 * Takes in the processed Bible directory, the current book name, and the current chapter number.
 	 */
+
+	std::string bookName;
+	int chapterNumber;
+	std::tie(bookName, chapterNumber) = BibleProcessor::GetBookAndChapter(bibleLine, bibleBookNamesFilepath);
 
 	// Make sure processed Bible directory exists
 	if (!std::filesystem::exists(processedBibleFilepath))
@@ -126,14 +131,14 @@ void BibleProcessor::CreateDirectory(const std::string &processedBibleFilepath,
 	}
 
 	// Create Book directory if it doesn't exist
-	std::string processedBibleBookDir = processedBibleFilepath + "/" + bibleBookName;
+	std::string processedBibleBookDir = processedBibleFilepath + "/" + bookName;
 	if (!std::filesystem::exists(processedBibleBookDir))
 	{
 		std::filesystem::create_directory(processedBibleBookDir);
 	}
 
 	// Insert text file for each chapter into Book directory if it doesn't exist
-	std::string chapterFilename = bibleBookName + "_" + std::to_string(chapterNumber) + ".txt";
+	std::string chapterFilename = bookName + "_" + std::to_string(chapterNumber) + ".txt";
 	std::string processedBibleChapterFile = processedBibleBookDir + "/" + chapterFilename;
 	if (!std::filesystem::exists(processedBibleChapterFile))
 	{
@@ -142,4 +147,9 @@ void BibleProcessor::CreateDirectory(const std::string &processedBibleFilepath,
 		chapterFile.open(processedBibleChapterFile);
 		chapterFile.close();
 	}
+}
+
+void BibleProcessor::ProcessLine(const std::string &bibleLine)
+{
+	BibleProcessor::CreateDirectory(processedBibleFilepath, bibleLine);
 }
